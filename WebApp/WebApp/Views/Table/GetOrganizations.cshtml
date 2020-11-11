@@ -1,0 +1,56 @@
+﻿@model List<WebApp.Models.OrganizationViewModel>
+@{
+    ViewBag.Title = "Таблица организаций";
+}
+
+@ViewBag.Title
+:
+<div>
+    <table border="1">
+        <thead>
+            <tr>
+                <td>
+                    Id
+                </td>
+                <td>
+                    Название организации
+                </td>
+                <td>
+                    Тип владения
+                </td>
+                <td>
+                    ФИО директора
+                </td>
+                <td>
+                    ФИО главного энергетика
+                </td>
+                <td>
+                    Адрес
+                </td>
+            </tr>
+        </thead>
+        @foreach (var elem in Model)
+        {
+            <tr>
+                <td>
+                    @elem.Id
+                </td>
+                <td>
+                    @elem.Name
+                </td>
+                <td>
+                    @elem.TypeOfOwnership
+                </td>
+                <td>
+                    @elem.DirectorFIO
+                </td>
+                <td>
+                    @elem.MainEnergeticFIO
+                </td>
+                <td>
+                    @elem.Address
+                </td>
+            </tr>
+        }
+    </table>
+</div>

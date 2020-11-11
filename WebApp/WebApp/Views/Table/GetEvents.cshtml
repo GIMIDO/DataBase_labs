@@ -1,0 +1,38 @@
+﻿@model List<WebApp.Models.Event>
+@{
+    ViewBag.Title = "Таблица событий";
+}
+
+@ViewBag.Title
+:
+<div>
+    <table border="1">
+        <thead>
+            <tr>
+                <td>
+                    Id
+                </td>
+                <td>
+                    Название
+                </td>
+                <td>
+                    Тип единицы
+                </td>
+            </tr>
+        </thead>
+        @foreach (var elem in Model)
+        {
+            <tr>
+                <td>
+                    @elem.Id
+                </td>
+                <td>
+                    @elem.Name
+                </td>
+                <td>
+                    @elem.Unit
+                </td>
+            </tr>
+        }
+    </table>
+</div>
