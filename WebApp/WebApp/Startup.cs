@@ -1,12 +1,13 @@
+using WebApp.MiddleWares;
+using WebApp.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using WebApp.MiddleWares;
-using WebApp.Models;
 
 namespace WebApp
 {
@@ -22,7 +23,7 @@ namespace WebApp
         public void ConfigureServices(IServiceCollection services)
         {
             // Добавление профилей кэширования для таблиц и остальных страниц
-            services.AddControllersWithViews(options => 
+            services.AddControllersWithViews(options =>
             {
                 options.CacheProfiles.Add("Cache",
                     new CacheProfile()
@@ -38,6 +39,8 @@ namespace WebApp
             });
             // Добавление контекста данных со строкой подключения, хранящейся в файле appsettings.json
             services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SqlServerConnection")));
+            services.AddDbContext<IdentityDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SqlServerConnection")));
+            services.AddIdentity<User, IdentityRole>(options => { options.User.RequireUniqueEmail = true; }).AddEntityFrameworkStores<IdentityDbContext>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -56,6 +59,7 @@ namespace WebApp
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseDbInitializeMiddleware();
 
