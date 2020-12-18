@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Список запланированных мероприятий</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+    <script src="lib/jquery/dist/jquery.js"></script>
+    <link href="lib/jquery-ui/themes/base/jquery-ui.min.css" rel="stylesheet" />
+    <script src="lib/jquery-ui/jquery-ui.js"></script>
+    <script src="lib/jquery-ui/ui/i18n/datepicker-ru.js"></script>
+</head>
+<body>
+    <h2 style="margin-left:15px; margin-top:15px;">Список запланированных мероприятий</h2>
+    <form name="eventForm">
+        <input type="hidden" name="id" id="id" value="0" />
+        <table border="0">
+            <tr>
+                <td>
+                    <div style="margin-left:15px;">
+                        <label for="organ">Название организации:</label>
+                        <select class="form-control" name="organ" id="organ"></select>
+                    </div>
+                    <div style="margin-left:15px; margin-top:15px;">
+                        <label for="event">Название события:</label>
+                        <select class="form-control" name="event" id="event"></select>
+                    </div>
+                </td>
+                <td>
+                    <div style="margin-left:15px;">
+                        <label for="startDate">Дата начала:</label>
+                        <input class="form-control" name="startDate" id="startDate" />
+                    </div>
+                    <div style="margin-left:15px; margin-top:15px;">
+                        <label for="endDate">Дата конца:</label>
+                        <input class="form-control" name="endDate" id="endDate" />
+                    </div>
+                </td>
+                <td>
+                    <div style="margin-left:15px;">
+                        <label for="planVolume">Планируемый объем:</label>
+                        <input class="form-control" name="planVolume" id="planVolume" />
+                    </div>
+                    <div style="margin-left:15px; margin-top:15px;">
+                        <label for="planCost">Планируемая стоимость:</label>
+                        <input class="form-control" name="planCost" id="planCost" />
+                    </div>
+                </td>
+                <td>
+                    <div style="margin-left:15px;">
+                        <label for="econom">Экономический эффект:</label>
+                        <input class="form-control" name="econom" id="econom" />
+                    </div>
+                    <div style="margin-left:15px; margin-top:15px;">
+                        <label for="fio">ФИО сотрудника:</label>
+                        <select class="form-control" name="fio" id="fio"></select>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div style="margin: 15px 0 15px 15px;">
+            <button id="submit" class="btn btn-primary" onclick="Save()">Сохранить</button>
+            <a id="reset" class="btn btn-primary" onclick="reset()">Сбросить</a>
+        </div>
+    </form>
+    <table class="table table-condensed table-striped  col-md-6">
+        <thead><tr><th>Id</th><th>Название организации</th><th>Название события</th><th>Дата начала</th><th>Дата конца</th><th>Объем</th><th>Стоимость</th><th>Экономический эффект</th><th>Название сотрудника</th><th></th></tr></thead>
+        <tbody id="data">
+        </tbody>
+    </table>
+    <script>
+        async function GetEventPlans() {
+            $.ajax({
+                url: '/api/eventPlans',
+                type: 'GET',
+                contentType: "application/json",
+                success: function (eventPlans) {
+                    var rows = "";
+                    $.each(eventPlans, function (index, eventPlan) {
+                        rows += row(eventPlan);
+                    })
+                    $("table tbody#data").append(rows);
+                }
+            });
+        }
+        async function GetEmpls() {
+            var listItems = "";
+            $.ajax({
+                url: '/api/eventPlans/empl',
+                type: 'GET',
+                contentType: "application/json",
+                success: function (empls) {
+                    $.each(empls, function (index, empl) {
+                        listItems = listItems + "<option value='" + empl.id + "'>" + empl.fio + "</option>";
+                    });
+                    $("#fio").html(listItems);
+                }
+            });
+        }
+        async function GetEvents() {
+            var listItems = "";
+            $.ajax({
+                url: '/api/eventPlans/event',
+                type: 'GET',
+                contentType: "application/json",
+                success: function (events) {
+                    $.each(events, function (index, eventElem) {
+                        listItems = listItems + "<option value='" + eventElem.id + "'>" + eventElem.name + "</option>";
+                    });
+                    $("#event").html(listItems);
+                }
+            });
+        }
+        async function GetOrgs() {
+            var listItems = "";
+            $.ajax({
+                url: '/api/eventPlans/organ',
+                type: 'GET',
+                contentType: "application/json",
+                success: function (organs) {
+                    $.each(organs, function (index, organ) {
+                        listItems = listItems + "<option value='" + organ.id + "'>" + organ.name + "</option>";
+                    });
+                    $("#organ").html(listItems);
+                }
+            });
+        }
+        function GetEventPlan(id) {
+            $.ajax({
+                url: '/api/eventPlans/' + id,
+                type: 'GET',
+                contentType: "application/json",
+                success: function (eventPlan) {
+                    var form = document.forms["eventForm"];
+                    form.elements["id"].value = eventPlan.id;
+                    form.elements["organ"].selectedIndex = eventPlan.organizationId;
+                    form.elements["event"].selectedIndex = eventPlan.eventId;
+                    form.elements["startDate"].value = eventPlan.startDate.substring(0, 10);
+                    form.elements["endDate"].value = eventPlan.endDate.substring(0, 10);
+                    form.elements["planVolume"].value = eventPlan.planVolume;
+                    form.elements["planCost"].value = eventPlan.planCost;
+                    form.elements["econom"].value = eventPlan.economicEffect;
+                    form.elements["fio"].selectedIndex = eventPlan.employeeId;
+                }
+            });
+        }
+        // Добавление пользователя
+        function CreateEventPlan(organ, event, startDate, endDate, planVolume, planCost, econom, fio) {
+            $.ajax({
+                url: "api/eventPlans",
+                contentType: "application/json",
+                method: "POST",
+                data: JSON.stringify({
+                    Id: 0,
+                    organizationId: parseInt(organ, 10),
+                    eventId: parseInt(event, 10),
+                    startDate: startDate,
+                    endDate: endDate,
+                    planVolume: parseInt(planVolume, 10),
+                    planCost: parseFloat(planCost),
+                    economicEffect: parseFloat(econom),
+                    employeeId: parseInt(fio, 10)
+                }),
+                success: function (eventPlan) {
+                    reset();
+                    $("table tbody#data").append(row(eventPlan));
+                },
+                error: function () {
+                    alert("Error");
+                }
+            });
+        }
+        // Изменение пользователя
+        async function EditEventPlan(id, organ, event, startDate, endDate, planVolume, planCost, econom, fio) {
+            $.ajax({
+                url: "api/eventPlans",
+                contentType: "application/json",
+                method: "PUT",
+                data: JSON.stringify({
+                    Id: parseInt(id, 10),
+                    organizationId: parseInt(organ, 10),
+                    eventId: parseInt(event, 10),
+                    startDate: startDate,
+                    endDate: endDate,
+                    planVolume: parseInt(planVolume, 10),
+                    planCost: parseFloat(planCost),
+                    economicEffect: parseFloat(econom),
+                    employeeId: parseInt(fio, 10)
+                }),
+                success: function (eventPlan) {
+                    reset();
+                    document.querySelector("tr[data-rowid='" + eventPlan.id + "']").replaceWith(row(eventPlan));
+                },
+                error: function () {
+                    alert("Error");
+                }
+            });
+        }
+        // Удаление пользователя
+        async function DeleteEventPlan(id) {
+            $.ajax({
+                url: "api/eventPlans/" + id,
+                contentType: "application/json",
+                method: "DELETE",
+                success: function (id) {
+                    $("tr[data-rowid='" + id + "']").remove();
+                }
+            });
+        }
+
+        // сброс формы
+        function reset() {
+            const form = document.forms["eventForm"];
+            form.reset();
+            form.elements["id"].value = 0;
+        }
+        // создание строки для таблицы
+        var row = function (eventPlan) {
+            return "<tr data-rowid='" + eventPlan.id + "'><td>" + eventPlan.id + "</td > <td>" + eventPlan.organizationName + "</td>" +
+                "<td>" + eventPlan.eventName + "</td>" +
+                "<td>" + eventPlan.startDate.substring(0, 10) + "</td>" +
+                "<td>" + eventPlan.endDate.substring(0, 10) + "</td>" +
+                "<td>" + eventPlan.planVolume + "</td>" +
+                "<td>" + eventPlan.planCost + "</td>" +
+                "<td>" + eventPlan.economicEffect + "</td>" +
+                "<td>" + eventPlan.employeeFIO + "</td>" +
+                "<td><button onclick='GetEventPlan(" + eventPlan.id + ")'>Изменить</button> | " +
+                "<button onclick='DeleteEventPlan(" + eventPlan.id + ")'>Удалить</button></td></tr>";
+        }
+        // сброс значений формы
+        document.getElementById("reset").click(function (e) {
+            e.preventDefault();
+            reset();
+        })
+
+        // отправка формы
+        function Save() {
+            const form = document.forms["eventForm"];
+            const id = form.elements["id"].value;
+            const organ = $("#organ option:selected").val();
+            const event = $("#event option:selected").val();
+            const startDate = form.elements["startDate"].value;
+            const endDate = form.elements["endDate"].value;
+            const planVolume = form.elements["planVolume"].value;
+            const planCost = form.elements["planCost"].value;
+            const econom = form.elements["econom"].value;
+            const fio = $("#fio option:selected").val();
+            if (id == 0)
+                CreateEventPlan(organ, event, startDate, endDate, planVolume, planCost, econom, fio);
+            else
+                EditEventPlan(id, organ, event, startDate, endDate, planVolume, planCost, econom, fio);
+        }
+
+        // загрузка накладных
+        GetEventPlans();
+        GetEmpls();
+        GetEvents();
+        GetOrgs();
+
+    </script>
+</body>
+</html>
